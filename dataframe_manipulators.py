@@ -106,10 +106,60 @@ def encode_class_label(df, column_name):
     df_copy[column_name] = df_copy[column_name].map(class_mapping)
     return df_copy
 
+def fill_NaN_column(df, column_name, fill_value):
+    """Fills any nan values in the specified column with the passed fill_value
+    
+    Arguments:
+        df {pandas dataframe} -- the df to be manipulated
+        column_name {string} -- the name of the column to be manipulated
+        fill_value {obj} -- the fill value for any nan in the column
+    
+    Returns:
+        pandas dataframe -- a manipulated copy of the dataframe
+    """
+    df_copy = df.copy() 
+    df_copy[column_name] = df_copy[column_name].fillna(fill_value, inplace=False)
+    return df_copy
+
+def impute_NaN_column(df, column_name, strategy):
+    """ Impute the nans of a specified column using various strategies
+
+    Arguments:
+        df {pandas datafram} -- the dataframe to be manipulated
+        column_name {string} -- the name of the column to be manipulated
+        strategy {string} -- the name of the specified column
+    
+    Raises:
+        ValueError: error for trying to get the mean of a non-numeric column
+        ValueError: error for trying to get the median of a non-numeric column
+        ValueError: error for specifying an incorrect strategy
+    
+    Returns:
+        [type] -- [description]
+    """
+    df_copy = df.copy()
+    # Impute one column
+    if strategy == "mean":
+        # if column is non numeric raise error. Cannot get mean of a numeric column
+        if not np.issubdtype(df[column_name].dtype, np.number):
+            raise ValueError("Cannot compute mean of a non-numeric column")
+        df_copy[column_name].fillna(df_copy[column_name].mean(), inplace=True)
+    elif strategy == "most_frequent":
+        # dropna=True means to not consider NaN values in computing the mode
+        df_copy[column_name].fillna(df_copy[column_name].mode(dropna=True).iloc[0], inplace=True)
+    elif strategy == "median":
+        # if column is non numeric raise error. Cannot get median of a numeric column
+        if not np.issubdtype(df[column_name].dtype, np.number):
+            raise ValueError("Cannot compute median of a non-numeric column")
+        df_copy[column_name].fillna(df_copy[column_name].median(), inplace=True)
+    else:
+        raise ValueError("Strategy \'" + strategy + "\' is not a valid strategy.")
+    
+    return df_copy
 
 df = pd.read_csv("Sample_Data/happy_one_versus_all.csv", index_col=0)
-print(df["track_label"].unique())
-df_new = encode_class_label(df, "track_label")
-print(df_new["track_label"].unique())
-print(df["track_label"].unique())
+# print(df["track_label"].unique())
+# df_new = encode_class_label(df, "track_label")
+# print(df_new["track_label"].unique())
+# print(df["track_label"].unique())
 
