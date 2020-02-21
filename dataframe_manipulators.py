@@ -6,8 +6,24 @@ import re
 import time
 from datetime import date
 
-"""
-"""
+class manipulator:
+    def __init__(self, function, args):
+        self.function = function
+        self.args = args
+    
+    def do(self, df):
+        df_copy = df.copy()
+        temp = [df_copy] + self.args
+        df_manipulated = self.function(*temp)
+        return df_manipulated
+
+    def get_function(self):
+        return self.function
+
+    def get_args(self):
+        return self.args
+
+        
 def drop_columns(df, column_names):
     """Drop columns from dataframe
     
@@ -226,7 +242,6 @@ def handle_date(df, column_name):
     #create new columns in df  
     new_col_names = ["_year", "_quarter", "_month", "_day_of_week", "_day_of_month", "_day_of_year"]
     new_col_names = [column_name + x for x in new_col_names]
-    print(new_col_names)
     new_col_values = [[] for _ in range(6)]
     # for each row, get date and then get new date values and apply it to the df
     date_col_index = df_copy.columns.get_loc(column_name)
@@ -244,9 +259,9 @@ def handle_date(df, column_name):
 
 
 
-df = pd.read_csv("Sample_Data/excited_tracks.csv", index_col=0)
-# print(df["track_label"].unique())
-# df_new = encode_class_label(df, "track_label")
-# print(df_new["track_label"].unique())
-# print(df["track_label"].unique())
+# df = pd.read_csv("Sample_Data/excited_tracks.csv", index_col=0)
+
+# man = manipulator(handle_date, ["release_date"])
+# df = man.do(df)
+# print(df.columns.values)
 

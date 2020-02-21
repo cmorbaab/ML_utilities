@@ -188,9 +188,6 @@ def is_column_clean(column):
 
     return is_numeric and not contains_nulls
 
-start_time = time.time()
-df = pd.read_csv("Sample_Data/happy_one_versus_all.csv", index_col=0)
-describe_df(df)
-#print(df[0:5].isnull().sum())
+# start_time = time.time()
 
-print("--- %s seconds ---" % (time.time() - start_time))
+# print("--- %s seconds ---" % (time.time() - start_time))
