@@ -5,25 +5,66 @@ from sklearn.preprocessing import OneHotEncoder
 import re
 import time
 from datetime import date
+from constants import *
 
 class manipulator:
-    def __init__(self, function, args):
+    """A object for specifying and doing manipulation operations on the dataframe.
+    """
+    def __init__(self, function, *args):
+        """Intialize the manipulator object
+        
+        Arguments:
+            function {python function} -- the manipulator function to be done
+        """
         self.function = function
         self.args = args
     
     def do(self, df):
+        """Run the manipulator function on the dataframe
+        
+        Arguments:
+            df {pandas dataframe} -- the pandas dataframe to be manipulated
+        
+        Returns:
+            pandas dataframe -- a manipulated copy of the dataframe
+        """
         df_copy = df.copy()
-        temp = [df_copy] + self.args
-        df_manipulated = self.function(*temp)
+        df_manipulated = self.function(df_copy, *self.args)
         return df_manipulated
 
     def get_function(self):
+        """Return the function to be done
+        
+        Returns:
+            function -- the python function to be done
+        """
         return self.function
 
     def get_args(self):
-        return self.args
-
+        """Return the arguments of the manipulator method
         
+        Returns:
+            list  -- manipulator function arguments
+        """
+        return self.args
+    
+    def __str__(self):
+        """Return string representation of the object
+        
+        Returns:
+            string -- the string representation of the manipulator object
+        """
+        out = "{}{}{}".format(bcolors.BOLD, self.function.__name__, bcolors.ENDC)
+        out += "\n\tArguments:"
+        out+= "\n\t\tdf -- (specified at runtime)"
+        for i, arg in enumerate(self.args):
+            out+= "\n\t\t{} -- {}".format(self.function.__code__.co_varnames[i+1], str(arg))
+        return out
+    
+    def get_operation_name(self):
+        return self.function.__name__
+
+
 def drop_columns(df, column_names):
     """Drop columns from dataframe
     
@@ -34,6 +75,8 @@ def drop_columns(df, column_names):
     Returns:
         pandas dataframe -- a manipulated copy of the pandas dataframe
     """
+    drop_columns.__name__ = "Drop Columns"
+
     if type(column_names)!=list:
         raise TypeError("Column names object needs to be a list of strings")
 
@@ -51,6 +94,8 @@ def drop_rows(df, row_indices):
     Returns:
         pandas dataframe -- a manipulated copy of the pandas dataframe
     """
+    drop_rows.__name__ = "Drop Rows"
+
     if type(row_indices)!=list:
         raise TypeError("Row indices object needs to be a list of strings")
 
@@ -71,6 +116,8 @@ def encode_ordinal(df, column_name, category_order=None):
     Returns:
         a copy of the manipulated dataframe
     """
+    encode_ordinal.__name__ = "Encode Ordinal Values"
+
     if category_order:
         encoder = OrdinalEncoder(categories=category_order)
     else:
@@ -82,7 +129,7 @@ def encode_ordinal(df, column_name, category_order=None):
     df_copy[column_name] = transformed_column
     return df_copy
 
-def encode_nominal(df, column_name, binary=False):
+def encode_nominal(df, column_name, binary):
     """Encodes nominal features (no implied order, ex. colors) through one-hot encoding. If binary = True (only 2 unique values) do encoding in one column.
     
     Arguments:
@@ -90,11 +137,13 @@ def encode_nominal(df, column_name, binary=False):
         column_name {string} -- the name of the column to be manipulated
     
     Keyword Arguments:
-        binary {bool} -- true = the column is binary, false = the column is not binary (default: {False})
+        binary {bool} -- true = the column is binary, false = the column is not binary
     
     Returns:
         a copy of the manipulated dataframe
     """
+    encode_nominal.__name__ = "Encode Nominal Values"
+
     if binary:
         mapping = {}
         unique = set(df[column_name].unique())
@@ -126,6 +175,8 @@ def encode_regex(df, column_name, regex_mapping):
     Returns:
         a copy of the manipulated dataframe
     """
+    encode_regex.__name__ = "Encode with Regular Expression"
+
     # compiled the regex to increase speed
     regex_mapping_comp = {re.compile(k) : v for k, v in regex_mapping.items()}
     def map_regex(item):
@@ -152,6 +203,8 @@ def encode_class_label(df, column_name):
     Returns:
         [pandas dataframe] -- a manipulated copy of the passed in dataframe
     """
+    encode_class_label.__name__ = "Encode Class Label"
+
     df_copy = df.copy()
     class_mapping = {label: idx for idx,label in enumerate(np.unique(df_copy[column_name]))}
     df_copy[column_name] = df_copy[column_name].map(class_mapping)
@@ -168,6 +221,8 @@ def fill_NaN_column(df, column_name, fill_value):
     Returns:
         pandas dataframe -- a manipulated copy of the dataframe
     """
+    fill_NaN_column.__name__ = "Fill NaNs of Column"
+
     df_copy = df.copy() 
     df_copy[column_name] = df_copy[column_name].fillna(fill_value, inplace=False)
     return df_copy
@@ -188,6 +243,8 @@ def impute_NaN_column(df, column_name, strategy):
     Returns:
         [type] -- [description]
     """
+    impute_NaN_column.__name__ = "Impute NaN Column"
+
     df_copy = df.copy()
     # Impute one column
     if strategy == "mean":
@@ -221,6 +278,8 @@ def handle_date(df, column_name):
     Returns:
         pandas dataframe -- a manipulated copy of the passed in dataframe
     """
+    handle_date.__name__ = "Handle Date Column"
+
     def convert_date_to_date_list(date_str):
         if len(date_str) == 10:
             # contains year-month-day
@@ -261,7 +320,7 @@ def handle_date(df, column_name):
 
 # df = pd.read_csv("Sample_Data/excited_tracks.csv", index_col=0)
 
-# man = manipulator(handle_date, ["release_date"])
-# df = man.do(df)
-# print(df.columns.values)
+# man = manipulator(handle_date, "release_date")
+# man.do(df)
+# print(man)
 
